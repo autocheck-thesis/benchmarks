@@ -4,12 +4,14 @@ const path = require("path");
 const fs = require("fs");
 const uuidv4 = require("uuid/v4");
 
+require("events").EventEmitter.defaultMaxListeners = 30;
+
 const assignment_title = "Benchmark";
 const assignment_id = uuidv4();
-const test_count = 3;
-const browser_count = 3;
+const test_count = 5;
+const browser_count = 5;
 
-const NS_PER_SEC = 1e9;
+const url = "https://localhost:4001/lti";
 
 const headless = true;
 
@@ -34,6 +36,11 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
   // Make sure that the Autocheck page opens in a new tab.
   // I can't imagine how cumbersome it would be to work with an iframe in Puppeteer...
   await page.click("#newtab");
+
+  // Set url
+  await page.evaluate(url => {
+    document.querySelector("input[name='url']").value = url;
+  }, url);
 
   // Set assignment_id and assignment_title
   await page.evaluate(
@@ -82,6 +89,9 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
           });
 
           await page.goto(lti_launcher_url);
+          await page.evaluate(url => {
+            document.querySelector("input[name='url']").value = url;
+          }, url);
           await page.evaluate(() => {
             document.querySelector("select[name='roles']").selectedIndex = 1;
           });
