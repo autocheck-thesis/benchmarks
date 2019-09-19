@@ -1,0 +1,7 @@
+@env "elixir",
+  version: "1.7"
+
+step "Run sleeper" do
+  run "chmod +x sleeper.sh"
+  run "./sleeper.sh"
+end
