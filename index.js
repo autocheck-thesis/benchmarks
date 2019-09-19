@@ -13,7 +13,11 @@ const browser_count = 5;
 
 const url = "https://localhost:4001/lti";
 
-const headless = true;
+const launch_options = {
+  headless: true,
+  ignoreHTTPSErrors: true,
+  args: ["--ignore-certificate-errors"]
+};
 
 function delay(timeout) {
   return new Promise(resolve => {
@@ -24,7 +28,7 @@ function delay(timeout) {
 const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/index.html")}`;
 
 (async () => {
-  let browser = await puppeteer.launch({ headless });
+  let browser = await puppeteer.launch(launch_options);
   const page = (await browser.pages())[0];
 
   page.on("dialog", async dialog => {
@@ -81,7 +85,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
     for (let j = 1; j <= browser_count * i; j++) {
       browsers.push(
         (async () => {
-          const browser = await puppeteer.launch({ headless });
+          const browser = await puppeteer.launch(launch_options);
           const page = (await browser.pages())[0];
 
           page.on("dialog", async dialog => {
@@ -90,11 +94,9 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
 
           await page.goto(lti_launcher_url);
           await page.evaluate(url => {
+            document.querySelector("select[name='roles']").selectedIndex = 1;
             document.querySelector("input[name='url']").value = url;
           }, url);
-          await page.evaluate(() => {
-            document.querySelector("select[name='roles']").selectedIndex = 1;
-          });
           await page.click("#newtab");
           await page.click("#launch");
 
@@ -102,7 +104,8 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
           const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
 
           const autocheck_student_page = await newTarget.page();
-          await autocheck_student_page.goto("https://localhost:4001/submission/submit/" + assignment_id);
+          await autocheck_student_page.goto(url + "/submission/submit/" + assignment_id);
+          await delay(2000);
           const fileInput = await autocheck_student_page.$("input[type=file]");
           await fileInput.uploadFile("./files/sleeper.sh");
 
@@ -115,7 +118,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
 
     console.log("Spawned", browsers_with_pages.length, "browsers");
 
-    const measurements = browsers_with_pages.map(async ([browser, page]) => {
+    const measurements = browsers_with_pages.map(async ([_, page]) => {
       await Promise.all([page.click("button[type='submit']"), page.waitForNavigation()]);
       const start = process.hrtime.bigint();
       await page.waitFor("i.green.check.icon", { timeout: 3600 * 1000 });
