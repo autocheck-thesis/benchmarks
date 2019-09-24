@@ -9,9 +9,9 @@ require("events").EventEmitter.defaultMaxListeners = 30;
 const assignment_title = "Benchmark";
 const assignment_id = uuidv4();
 const test_count = 5;
-const browser_count = 5;
+const browser_count = 1;
 
-const url = "https://localhost:4001/lti";
+const url = "http://localhost:4000";
 
 const launch_options = {
   headless: true,
@@ -137,7 +137,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
       const median_ns = median(result);
       const mean_ns = mean(result);
 
-      console.log("#browsers=", num_browsers, "median=", median_ns / 1000000, "ms", "mean=", mean_ns / 1000000, "ms");
+      console.log("#browsers=", num_browsers, "median=", median_ns / 1000000, "ms", "mean=", mean_ns / 1000000, "ms", ...result);
     } else {
       console.log("#browsers=", num_browsers, "timeout");
     }
