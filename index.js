@@ -25,6 +25,10 @@ function delay(timeout) {
   });
 }
 
+function ensure_trailing_slash(url) {
+  return url.endsWith("/") ? url : url + "/";
+}
+
 const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/index.html")}`;
 
 (async () => {
@@ -44,7 +48,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
   // Set url
   await page.evaluate(url => {
     document.querySelector("input[name='url']").value = url;
-  }, url);
+  }, ensure_trailing_slash(url));
 
   // Set assignment_id and assignment_title
   await page.evaluate(
@@ -96,7 +100,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
           await page.evaluate(url => {
             document.querySelector("select[name='roles']").selectedIndex = 1;
             document.querySelector("input[name='url']").value = url;
-          }, url);
+          }, ensure_trailing_slash(url));
           await page.click("#newtab");
           await page.click("#launch");
 
@@ -104,7 +108,7 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
           const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
 
           const autocheck_student_page = await newTarget.page();
-          await autocheck_student_page.goto(url + "/submission/submit/" + assignment_id);
+          await autocheck_student_page.goto(ensure_trailing_slash(url) + "submission/submit/" + assignment_id);
           await delay(2000);
           const fileInput = await autocheck_student_page.$("input[type=file]");
           await fileInput.uploadFile("./files/sleeper.sh");
