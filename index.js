@@ -151,6 +151,8 @@ const lti_launcher_url = `file:${path.join(__dirname, "../server/lti_launcher/in
 
     browsers = [];
   }
+
+  process.exit(0);
 })();
 
 function median(array) {
